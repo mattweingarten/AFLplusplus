@@ -938,7 +938,7 @@ static void edit_params(u32 argc, char **argv, char **envp) {
   if (!getenv("AFL_DONT_OPTIMIZE")) {
 
     cc_params[cc_par_cnt++] = "-g";
-    if (!have_o) cc_params[cc_par_cnt++] = "-O3";
+    if (!have_o) cc_params[cc_par_cnt++] = "-O0";
     if (!have_unroll) cc_params[cc_par_cnt++] = "-funroll-loops";
     // if (strlen(march_opt) > 1 && march_opt[0] == '-')
     //  cc_params[cc_par_cnt++] = march_opt;
