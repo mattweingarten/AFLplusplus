@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+export PATH="/clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-16.04/bin:$PATH"
 
 # AST_NAME=${AST_NAME:-"main"}
 AST_OPT_FLAGS=${AST_OPT_FLAGS:-""}
@@ -20,3 +21,18 @@ llvm-dis $AST_NAME.bc
 
 opt ${AST_NAME}.bc -S -o ${AST_NAME}.opt.ll $AST_OPT_FLAGS
 clang ${AST_NAME}.opt.ll -o ${AST_OUT_NAME}
+
+# this approach does not work, we need to link the libraries the original target linked during compilation
+# brain storm if we can avoid this, so far no idea
+# afl-clang-fast++ ./magic_fuzzer.opt.ll /libAFLDriver.a -o out -fsanitize=address
+
+# linking fails because magic_fuzzer uses zlib which we have to link when compiling bc file...
+#llvm-link:(.text.uncompresszlib[uncompresszlib$c579b31508ac7f6d54abcad9b8b5103b]+0x217): undefined reference to `inflateInit_'
+#llvm-link:(.text.uncompresszlib[uncompresszlib$c579b31508ac7f6d54abcad9b8b5103b]+0x2d8): undefined reference to `inflateInit2_'llvm-link:(.text.uncompresszlib[uncompresszlib$c579b31508ac7f6d54abcad9b8b5103b]+0x2ed): undefined reference to `inflate'
+#llvm-link:(.text.uncompresszlib[uncompresszlib$c579b31508ac7f6d54abcad9b8b5103b]+0x32a): undefined reference to `inflateEnd'
+#llvm-link:(.text.uncompresszlib[uncompresszlib$c579b31508ac7f6d54abcad9b8b5103b]+0x3d2): undefined reference to `zError'
+
+# also: does the bitcode already contains the afl hooks? if so do we run into issues if we reuse afl-clang here?
+
+# if we just run  clang++ ./magic_fuzzer.opt.ll  -o out -fsanitize=address
+# main symbol is missing in target
